@@ -1,6 +1,7 @@
 import * as d3 from "d3";
 import { Cords, MinorSolarObjectData, PlanetData } from "../models";
 import ts from "typescript";
+import App from "../App";
 
 export function PlanetsWithOrbits(planetsData: PlanetData[]): {
   planet: d3.Selection<SVGCircleElement, undefined, null, undefined>;
@@ -24,7 +25,7 @@ export function PlanetsWithOrbits(planetsData: PlanetData[]): {
 }
 
 export function Sun(): d3.Selection<d3.BaseType, undefined, null, undefined> {
-  const sunRadius = 50;
+  const sunRadius = 200;
   return d3
     .create("svg:pattern")
     .attr("width", sunRadius)
@@ -119,6 +120,10 @@ export function OortCloud(oc: MinorSolarObjectData) {
   const oortGroup = d3.create("svg:g").attr("id", "oort-g");
   const innerRadius = getScaledSemiMajorAxis(oc.semiMajorAxisStart, oc.name);
   const outerRadius = getScaledSemiMajorAxis(oc.semiMajorAxisEnd / 15, oc.name);
+  const { width, height } = calculateWidthAndHeight(
+    oc.eccentricity,
+    getScaledSemiMajorAxis(oc.semiMajorAxisStart * 0.8, oc.name)
+  );
   const arcGenerator = d3
     .arc()
     .innerRadius(innerRadius)
@@ -128,16 +133,16 @@ export function OortCloud(oc: MinorSolarObjectData) {
 
   const textArcGenerator = d3
     .arc()
-    .innerRadius(innerRadius * 1.1) // Adjust the factor (0.1) to control the distance from the inner edge
+    .innerRadius(innerRadius * 1.2) // Adjust the factor (0.1) to control the distance from the inner edge
     .outerRadius(outerRadius * 0.8);
   oortGroup
-    .append("svg:path")
-    .attr("id", "text-path")
-    .attr("d", arcGenerator as any)
-    .attr("fill", "grey")
-    .attr("opacity", 0.2)
-    .text(oc.name);
-
+    .append<SVGEllipseElement>("ellipse")
+    .attr("cx", 0)
+    .attr("cy", 0)
+    .style("fill", "none")
+    .style("stroke", "grey")
+    .attr("rx", width)
+    .attr("ry", height);
   oortGroup.append(() => textAtAngle(textArcGenerator, oc.name, 45).node());
 
   oortGroup.append(() => textAtAngle(textArcGenerator, oc.name, 313).node());
@@ -279,38 +284,36 @@ const getScaledSemiMajorAxis = (
 ): number => {
   switch (name) {
     case "Mercury":
-      return semiMajorAxis * 38;
+      return semiMajorAxis * 48;
     case "Venus":
-      return semiMajorAxis * 34;
+      return semiMajorAxis * 44;
     case "Earth":
-      return semiMajorAxis * 40;
+      return semiMajorAxis * 50;
     case "Mars":
-      return semiMajorAxis * 35;
+      return semiMajorAxis * 55;
     case "Ceres":
-      return semiMajorAxis * 27;
-    case "Asteroid Belt":
       return semiMajorAxis * 37;
+    case "Asteroid Belt":
+      return semiMajorAxis * 47;
     case "Jupiter":
-      return semiMajorAxis * 17;
+      return semiMajorAxis * 27;
     case "Saturn":
-      return semiMajorAxis * 12;
+      return semiMajorAxis * 22;
     case "Uranus":
-      return semiMajorAxis * 8;
+      return semiMajorAxis * 13.4;
     case "Neptune":
-      return semiMajorAxis * 7;
+      return semiMajorAxis * 10;
     case "Pluto":
-      return semiMajorAxis * 6.5;
+      return semiMajorAxis * 8.3;
     case "Oort Cloud":
-      return semiMajorAxis / 9;
+      return semiMajorAxis / 7;
     default:
       return 0;
   }
 };
 
 const getScaledDiameter = (diameter: number, scaleFactor = 1500): number => {
-  if (diameter > 150000) return diameter / (scaleFactor * 10);
-  if (diameter > 100000) return diameter / (scaleFactor * 5);
-  if (diameter > 50000) return diameter / (scaleFactor * 2.5);
-  if (diameter > 10000) return (diameter / scaleFactor) * 1.5;
-  return (diameter / scaleFactor) * 2;
+  if (diameter > 49000) return (diameter / scaleFactor) * 0.7;
+  if (diameter > 5000) return (diameter / scaleFactor) * 1.5;
+  return (diameter / scaleFactor) * 3;
 };
