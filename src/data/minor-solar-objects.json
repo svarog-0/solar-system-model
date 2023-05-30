@@ -1,0 +1,26 @@
+{
+  "AsteroidBelt": {
+    "name": "Asteroid Belt",
+    "semiMajorAxisStart": 2.1,
+    "semiMajorAxisEnd": 3.3,
+    "orbitInclination": 0.32,
+    "diameter": 331,
+    "type": "Asteroids",
+    "averageTemperature": -60,
+    "eccentricity": 0.17,
+    "img": "/assets/asteroid.png",
+    "numberOfObjectsToRender": 100
+  },
+  "OortCloud": {
+    "name": "Oort Cloud",
+    "semiMajorAxisStart": 5000,
+    "semiMajorAxisEnd": 100000,
+    "orbitInclination": 0,
+    "diameter": 3,
+    "type": "Cometary Cloud",
+    "averageTemperature": -260,
+    "eccentricity": 0.8,
+    "img": "/assets/asteroid.png",
+    "numberOfObjectsToRender": 100
+  }
+}

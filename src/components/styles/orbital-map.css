@@ -1,14 +1,6 @@
-.svg-container {
-  display: inline-block;
-  position: relative;
+.responsive-svg {
   width: 100%;
-  padding-bottom: 100%; /* aspect ratio */
-  vertical-align: top;
-  overflow: hidden;
-}
-.svg-content-responsive {
-  display: inline-block;
-  position: absolute;
-  top: 10px;
-  left: 0;
+  height: 100vh;
+  padding: 0;
+  margin: 0; /* Set the SVG height to 100% of the viewport height */
 }

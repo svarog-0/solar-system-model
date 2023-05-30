@@ -1,50 +1,43 @@
 import * as d3 from "d3";
 import "./styles/orbital-map.css";
-import { Sun, PlanetWithOrbit } from "./solar-objects";
+import {
+  Sun,
+  PlanetsWithOrbits,
+  AsteroidBelt,
+  OortCloud,
+} from "./solar-objects";
 import { useEffect } from "react";
-
-const earthData = {
-  name: "Earth",
-  mass: 1,
-  semiMajorAxis: 1,
-  eccentricity: 0.0167,
-  inclination: 0,
-  argumentOfPeriapsis: 114.20783,
-  diameter: 12742,
-  type: "Rocky",
-  averageTemperature: 15,
-  dayDuration: 24,
-  yearDuration: 1,
-};
+import { MinorSolarObjectData, PlanetData } from "../models";
+import planetsDataJson from "../data/planet-data.json";
+import minorSolarObjectsJson from "../data/minor-solar-objects.json";
+const planetsData: PlanetData[] = planetsDataJson;
+const asteroidBeltData: MinorSolarObjectData =
+  minorSolarObjectsJson.AsteroidBelt;
+const oortCloudData: MinorSolarObjectData = minorSolarObjectsJson.OortCloud;
 
 export default function OrbitalMap() {
   useEffect(() => {
     d3.select("#map-root").selectAll("*").remove();
     console.log("OrbitalMap mounted");
     const svg = createSvg();
-    const g = svg.append("g");
-    g.attr("transform", `translate(${300},${200})`);
+    const g = svg.append("g").attr("id", "g-root");
+    g.attr(
+      "transform",
+      `translate(${window.innerWidth / 2}, ${window.innerHeight / 2})`
+    );
     g.append(() => Sun().node());
 
     // Create earth and its orbit
-    const { planet: earth, orbit: earthOrbit } = PlanetWithOrbit({
-      name: "Earth",
-      radius: 10,
-      color: "blue",
-      rotationDuration: 1000,
-      position: {
-        x: 0,
-        y: 0,
-      },
-      semiMajorAxis: 57,
-      eccentricity: 0.1,
-      orbitInclination: 0.0,
-      equatorInclination: 23.4,
-      scaleFactor: 10,
+    const planetsWithOrbits = PlanetsWithOrbits(planetsData);
+    planetsWithOrbits.forEach((pwo) => {
+      g.append(() => pwo.orbit.node());
+      g.append(() => pwo.planet.node());
     });
 
-    g.append(() => earthOrbit.node());
-    g.append(() => earth.node());
+    // Create asteroid belt and Oort Cloud
+    g.append(() => AsteroidBelt(asteroidBeltData).node());
+    g.append(() => OortCloud(oortCloudData).node());
+
     d3.select("#map-root").append(() => svg.node());
   }, []);
 
@@ -57,8 +50,6 @@ const createSvg = () =>
     // Container class to make it responsive.
     .classed("svg-container", true)
     .append("svg")
-    // Responsive SVG needs these 2 attributes and no width and height attr.
-    .attr("preserveAspectRatio", "xMinYMin meet")
-    .attr("viewBox", "0 0 600 400")
-    // Class to make it responsive.
-    .classed("svg-content-responsive", true);
+    .attr("class", "responsive-svg")
+    .attr("viewBox", `0 0 ${window.innerWidth} ${window.innerHeight}`)
+    .attr("preserveAspectRatio", "xMidYMid meet");
