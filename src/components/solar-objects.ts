@@ -1,16 +1,14 @@
 import * as d3 from "d3";
 import { Cords, MinorSolarObjectData, PlanetData } from "../models";
-import ts from "typescript";
-import App from "../App";
 
 export function PlanetsWithOrbits(planetsData: PlanetData[]): {
-  planet: d3.Selection<SVGCircleElement, undefined, null, undefined>;
-  orbit: d3.Selection<SVGEllipseElement, undefined, null, undefined>;
+  planet: SVGCircleElement;
+  orbit: SVGEllipseElement;
 }[] {
   const cords = calculateBarycenter(planetsData);
   return planetsData.map((pd) => {
     const orbit = Orbit(pd, cords);
-    const planet = d3
+    const planetSelection = d3
       .create<SVGCircleElement>("svg:circle")
       .attr("label", pd.name)
       .attr("cx", cords.x)
@@ -18,30 +16,42 @@ export function PlanetsWithOrbits(planetsData: PlanetData[]): {
       .attr("r", getScaledDiameter(pd.diameter))
       .attr("fill", pd.color);
 
-    addOrbitalAnimation(planet, orbit);
+    const planet =
+      planetSelection.node() ||
+      (() => {
+        throw Error("Planet not created");
+      })();
 
-    return { planet, orbit };
+    addOrbitalAnimation(planetSelection, orbit);
+
+    return { planet: planet, orbit: orbit };
   });
 }
 
-export function Sun(): d3.Selection<d3.BaseType, undefined, null, undefined> {
+export function Sun(): SVGImageElement {
   const sunRadius = 200;
-  return d3
-    .create("svg:pattern")
-    .attr("width", sunRadius)
-    .attr("height", sunRadius)
-    .attr("patternUnits", "userSpaceOnUse")
-    .attr("x", -(sunRadius / 2))
-    .attr("y", -(sunRadius / 2))
-    .append("svg:image")
-    .attr("xlink:href", "/assets/sun.png")
-    .attr("width", sunRadius)
-    .attr("height", sunRadius)
-    .attr("x", -(sunRadius / 2))
-    .attr("y", -(sunRadius / 2));
+  return (
+    d3
+      .create<SVGPatternElement>("svg:pattern")
+      .attr("width", sunRadius)
+      .attr("height", sunRadius)
+      .attr("patternUnits", "userSpaceOnUse")
+      .attr("x", -(sunRadius / 2))
+      .attr("y", -(sunRadius / 2))
+      .append<SVGImageElement>("svg:image")
+      .attr("xlink:href", "/assets/sun.png")
+      .attr("width", sunRadius)
+      .attr("height", sunRadius)
+      .attr("x", -(sunRadius / 2))
+      .attr("y", -(sunRadius / 2))
+      .node() ||
+    (() => {
+      throw Error("Sun not created");
+    })()
+  );
 }
 
-export function AsteroidBelt(ad: MinorSolarObjectData) {
+export function AsteroidBelt(ad: MinorSolarObjectData): Element {
   const asteroidGroup = d3.create("svg:g").attr("id", "asteroid-g");
   const innerRadius = getScaledSemiMajorAxis(ad.semiMajorAxisStart, ad.name);
   const outerRadius = getScaledSemiMajorAxis(ad.semiMajorAxisEnd, ad.name);
@@ -113,7 +123,12 @@ export function AsteroidBelt(ad: MinorSolarObjectData) {
     .style("fill", "none")
     .style("stroke", "none");
 
-  return asteroidGroup;
+  return (
+    asteroidGroup.node() ||
+    (() => {
+      throw Error("Asteroid belt not created");
+    })()
+  );
 }
 
 export function OortCloud(oc: MinorSolarObjectData) {
@@ -186,23 +201,26 @@ function textAtAngle(
   return g;
 }
 
-function Orbit(
-  solarObject: PlanetData,
-  cords: Cords
-): d3.Selection<SVGEllipseElement, undefined, null, undefined> {
+function Orbit(solarObject: PlanetData, cords: Cords): SVGEllipseElement {
   const { width, height } = calculateWidthAndHeight(
     solarObject.eccentricity,
     getScaledSemiMajorAxis(solarObject.semiMajorAxis, solarObject.name)
   );
-  return d3
-    .create<SVGEllipseElement>("svg:ellipse")
-    .attr("cx", cords.x)
-    .attr("cy", cords.y)
-    .style("fill", "none")
-    .style("stroke", "grey")
-    .style("stroke-dasharray", "4")
-    .attr("rx", width)
-    .attr("ry", height);
+  return (
+    d3
+      .create<SVGEllipseElement>("svg:ellipse")
+      .attr("cx", cords.x)
+      .attr("cy", cords.y)
+      .style("fill", "none")
+      .style("stroke", "grey")
+      .style("stroke-dasharray", "4")
+      .attr("rx", width)
+      .attr("ry", height)
+      .node() ||
+    (() => {
+      throw new Error("Orbit not created");
+    })()
+  );
 }
 
 const calculateWidthAndHeight = (
@@ -218,8 +236,8 @@ const calculateWidthAndHeight = (
 };
 
 const addOrbitalAnimation = (
-  planet: d3.Selection<any, undefined, null, undefined>,
-  orbit: d3.Selection<SVGEllipseElement, undefined, null, undefined>,
+  planet: d3.Selection<SVGCircleElement, undefined, null, undefined>,
+  orbit: SVGEllipseElement,
   rotationSpeed = 1
 ) => {
   planet
@@ -229,12 +247,14 @@ const addOrbitalAnimation = (
     .attrTween("transform", () => {
       return (t: number) => {
         const angle = t * 2 * Math.PI;
-        const x = 0 + (parseInt(orbit.attr("rx")) || 1) * Math.cos(angle);
-        const y = 0 + (parseInt(orbit.attr("ry")) || 1) * Math.sin(angle);
+        const x =
+          0 + parseInt(orbit.getAttribute("rx") || "1") * Math.cos(angle);
+        const y =
+          0 + parseInt(orbit.getAttribute("ry") || "1") * Math.sin(angle);
         return `translate(${x},${y})`;
       };
-    });
-  //.on("end", () => planetOrbitalAnimation(planet, orbit));
+    })
+    .on("end", () => addOrbitalAnimation(planet, orbit));
 };
 
 function calculateBarycenter(planets: PlanetData[]): Cords {
