@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import "./zoomable-svg.css";
 
 /**
  * Creates a zoomable SVG container with the provided SVG content.
@@ -6,23 +7,20 @@ import * as d3 from "d3";
 export default function ZoomableSvg(
   svgContent: SVGSVGElement | null
 ): HTMLElement {
-  const { svgWidth, svgHeight } = {
-    svgWidth: 1920 * 1.2,
-    svgHeight: 1080 * 1.3,
-  };
+  const svgWidth = 1920 * 1.2;
+  const svgHeight = 1080 * 1.3;
   const maxMoveDistance = 50;
-
+  const defaultScale = window.innerWidth <= 1000 ? 3 : 1.5;
+  const minScale = 1;
+  const maxScale = 4;
+  const zoomIntensity = 0.1;
+  const moveThreshold = 10;
   let isDragging = false;
   let startX = 0;
   let startY = 0;
   let translateX = 0;
   let translateY = 0;
-  let scale: number;
-  const minScale = 1;
-  const maxScale = 4;
-  const zoomIntensity = 0.1;
-  const moveThreshold = 10;
-
+  let scale = defaultScale;
   let isPanning = false;
   let isZooming = false;
   let touchStartDistance = 0;
@@ -30,38 +28,21 @@ export default function ZoomableSvg(
   let touchStartX = 0;
   let touchStartY = 0;
 
-  const div = d3
-    .create("div")
-    .style("overflow", "hidden")
-    .style("width", "100vw")
-    .style("height", "100vh")
-    .style("user-select", "none")
-    .style("cursor", isDragging ? "grabbing" : "grab");
+  const div = d3.create("div").attr("class", "zoomable-svg-div");
+  setCursor(div, isDragging);
 
   const svg = div
     .append("svg")
-    .style("overflow", "hidden")
-    .style("display", "block")
-    .style("margin", "auto")
     .attr("xmlns", "http://www.w3.org/2000/svg")
-    .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`)
-    .style("transform", `translate(${translateX}px, ${translateY}px)`)
-    .attr("width", "100vw")
-    .attr("height", "100vh");
+    .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
   const g = svg
     .append("g")
     .attr("transform", `translate(${svgWidth / 2}, ${svgHeight / 2})`);
 
-  if (svgContent) {
-    g.append(() => svgContent);
-  }
-  setDefaultScale();
-  applyTransform();
-
   function handleMouseDown(event: any): void {
     console.log("handleMouseDown");
     isDragging = true;
-    div.style("cursor", isDragging ? "grabbing" : "grab");
+    setCursor(div, isDragging);
     startX = getClientX(event);
     startY = getClientY(event);
   }
@@ -76,10 +57,7 @@ export default function ZoomableSvg(
     if (distance <= maxMoveDistance) {
       translateX = translateX + offsetX;
       translateY = translateY + offsetY;
-      svg.style(
-        "transform",
-        `translate(${translateX}px, ${translateY}px) scale(${scale})`
-      );
+      applyTransform();
     }
     startX = getClientX(event);
     startY = getClientY(event);
@@ -87,7 +65,7 @@ export default function ZoomableSvg(
 
   function handleMouseUp(): void {
     isDragging = false;
-    div.style("cursor", isDragging ? "grabbing" : "grab");
+    setCursor(div, isDragging);
   }
 
   function handleWheel(event: WheelEvent): void {
@@ -174,16 +152,25 @@ export default function ZoomableSvg(
     isZooming = false;
   }
 
-  function setDefaultScale(): void {
-    scale = window.innerWidth <= 1000 ? 3 : 1.5;
-  }
-
   function applyTransform(): void {
     svg.style(
       "transform",
       `translate(${translateX}px, ${translateY}px) scale(${scale})`
     );
   }
+
+  function setCursor(
+    div: d3.Selection<HTMLDivElement, undefined, null, undefined>,
+    isDragging: boolean
+  ) {
+    div.style("cursor", isDragging ? "grabbing" : "grab");
+  }
+
+  if (svgContent) {
+    g.append(() => svgContent);
+  }
+
+  applyTransform();
 
   svg.on("mousedown", handleMouseDown);
   svg.on("touchstart", handleTouchStart);
@@ -214,10 +201,4 @@ function getDistance(point1: Touch, point2: Touch): number {
   const dx = point2.clientX - point1.clientX;
   const dy = point2.clientY - point1.clientY;
   return Math.sqrt(dx ** 2 + dy ** 2);
-}
-
-function getCenter(point1: Touch, point2: Touch): { x: number; y: number } {
-  const x = (point1.clientX + point2.clientX) / 2;
-  const y = (point1.clientY + point2.clientY) / 2;
-  return { x, y };
 }
