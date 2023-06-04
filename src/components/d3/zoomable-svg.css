@@ -1,4 +1,4 @@
-.zoomable-svg-div {
+.zoomable-svg-container {
   overflow: "hidden";
   width: "100vw";
   height: "100vh";
@@ -6,11 +6,18 @@
   cursor: "grab";
 }
 
-.zoomable-svg-div > svg {
+.zoomable-svg-container > svg {
   overflow: hidden;
   user-select: "none";
   display: block;
   margin: auto;
   width: 100vw;
   height: 100vh;
+}
+
+.zoomable-svg-container > svg text {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
 }

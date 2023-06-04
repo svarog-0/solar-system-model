@@ -32,7 +32,7 @@ export default function ZoomableSvg(
   let touchStartY = 0;
 
   // Create container
-  const div = d3.create("div").attr("class", "zoomable-svg-div");
+  const div = d3.create("div").attr("class", "zoomable-svg-container");
   setCursor(div, isDragging);
 
   // Create SVG
