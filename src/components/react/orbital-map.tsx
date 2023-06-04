@@ -11,6 +11,7 @@ import { MinorSolarObjectData, PlanetData } from "../../models";
 import planetsDataJson from "../../data/planet-data.json";
 import minorSolarObjectsJson from "../../data/minor-solar-objects.json";
 import ZoomableSvg from "../d3/zoomable-svg";
+import { SpaceBackground } from "../d3/space-background";
 const planetsData: PlanetData[] = planetsDataJson;
 const asteroidBeltData: MinorSolarObjectData =
   minorSolarObjectsJson.AsteroidBelt;
@@ -35,7 +36,8 @@ export default function OrbitalMap() {
 
     g.append(() => AsteroidBelt(asteroidBeltData));
     g.append(() => OortCloud(oortCloudData).node());
-    root.append(() => ZoomableSvg(g.node()));
+    const svg = ZoomableSvg(g.node(), SpaceBackground);
+    root.append(() => svg);
   }, []);
 
   return <div ref={rootRef}></div>;

@@ -6,7 +6,7 @@
   cursor: "grab";
 }
 
-.zoomable-svg-container > svg {
+.zoomable-svg-container > svg.content {
   overflow: hidden;
   user-select: "none";
   display: block;

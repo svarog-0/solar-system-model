@@ -15,7 +15,10 @@ const MOVE_THRESHOLD = 10;
  * Creates a zoomable SVG container with the provided SVG content.
  */
 export default function ZoomableSvg(
-  svgContent: SVGSVGElement | null
+  svgContent: SVGSVGElement | null,
+  backgroundFunction: (
+    svg: d3.Selection<SVGSVGElement, undefined, null, undefined>
+  ) => void | null = () => null
 ): HTMLElement {
   // State
   let isDragging = false;
@@ -32,12 +35,20 @@ export default function ZoomableSvg(
   let touchStartY = 0;
 
   // Create container
-  const div = d3.create("div").attr("class", "zoomable-svg-container");
-  setCursor(div, isDragging);
+  const container = d3.create("div").attr("class", "zoomable-svg-container");
+  setCursor(container, isDragging);
+  const svgBackground = container
+    .append("svg")
+    .attr("class", "background")
+    .attr("xmlns", "http://www.w3.org/2000/svg")
+    .attr("viewBox", `0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`);
+
+  backgroundFunction(svgBackground);
 
   // Create SVG
-  const svg = div
+  const svg = container
     .append("svg")
+    .attr("class", "content")
     .attr("xmlns", "http://www.w3.org/2000/svg")
     .attr("viewBox", `0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`);
 
@@ -46,11 +57,13 @@ export default function ZoomableSvg(
     .append("g")
     .attr("transform", `translate(${SVG_WIDTH / 2}, ${SVG_HEIGHT / 2})`);
 
+  // Add background
+
   // Define event handlers
   function handleMouseDown(event: any): void {
     console.log("handleMouseDown");
     isDragging = true;
-    setCursor(div, isDragging);
+    setCursor(container, isDragging);
     startX = getClientX(event);
     startY = getClientY(event);
   }
@@ -74,7 +87,7 @@ export default function ZoomableSvg(
 
   function handleMouseUp(): void {
     isDragging = false;
-    setCursor(div, isDragging);
+    setCursor(container, isDragging);
   }
 
   function handleWheel(event: WheelEvent): void {
@@ -170,7 +183,7 @@ export default function ZoomableSvg(
   svg.on("mouseleave", handleMouseUp);
   svg.on("touchmove", handleTouchMove);
   svg.on("touchend", handleTouchEnd);
-  div.on("wheel", handleWheel);
+  container.on("wheel", handleWheel);
 
   // Render and return
   if (svgContent) {
@@ -180,7 +193,7 @@ export default function ZoomableSvg(
   applyTransform(svg, translateX, translateY, scale);
 
   return (
-    div.node() ??
+    container.node() ??
     (() => {
       throw new Error("Zoomable svg not created");
     })()
