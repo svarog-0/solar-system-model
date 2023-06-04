@@ -1,6 +1,9 @@
 import * as d3 from "d3";
-import { Cords, MinorSolarObjectData, PlanetData } from "../models";
+import { Cords, MinorSolarObjectData, PlanetData } from "../../models";
 
+/**
+ * Creates planets and their orbits around barycenter
+ */
 export function PlanetsWithOrbits(planetsData: PlanetData[]): {
   planet: SVGCircleElement;
   orbit: SVGEllipseElement;
@@ -28,6 +31,9 @@ export function PlanetsWithOrbits(planetsData: PlanetData[]): {
   });
 }
 
+/**
+ * Creates a sun (sol)
+ */
 export function Sun(): SVGImageElement {
   const sunRadius = 200;
   return (
@@ -51,6 +57,9 @@ export function Sun(): SVGImageElement {
   );
 }
 
+/**
+ * Creates solar system asteroid belt
+ */
 export function AsteroidBelt(ad: MinorSolarObjectData): Element {
   const asteroidGroup = d3.create("svg:g").attr("id", "asteroid-g");
   const innerRadius = getScaledSemiMajorAxis(ad.semiMajorAxisStart, ad.name);
@@ -131,6 +140,9 @@ export function AsteroidBelt(ad: MinorSolarObjectData): Element {
   );
 }
 
+/**
+ * Creates Oort cloud around sun
+ */
 export function OortCloud(oc: MinorSolarObjectData) {
   const oortGroup = d3.create("svg:g").attr("id", "oort-g");
   const innerRadius = getScaledSemiMajorAxis(oc.semiMajorAxisStart, oc.name);
@@ -223,26 +235,26 @@ function Orbit(solarObject: PlanetData, cords: Cords): SVGEllipseElement {
   );
 }
 
-const calculateWidthAndHeight = (
+function calculateWidthAndHeight(
   eccentricity: number,
   semiMajorAxis: number
-): { width: number; height: number } => {
+): { width: number; height: number } {
   const semiMinorAxis =
     semiMajorAxis * Math.sqrt(1 - Math.pow(eccentricity, 2));
 
   const width = semiMajorAxis * 2;
   const height = semiMinorAxis * 2;
   return { width, height };
-};
+}
 
-const addOrbitalAnimation = (
+function addOrbitalAnimation(
   planet: d3.Selection<SVGCircleElement, undefined, null, undefined>,
   orbit: SVGEllipseElement,
   rotationSpeed = 1
-) => {
+) {
   planet
     .transition()
-    .duration(1000 * rotationSpeed)
+    .duration(1 * rotationSpeed)
     .ease(d3.easeLinear)
     .attrTween("transform", () => {
       return (t: number) => {
@@ -253,9 +265,9 @@ const addOrbitalAnimation = (
           0 + parseInt(orbit.getAttribute("ry") || "1") * Math.sin(angle);
         return `translate(${x},${y})`;
       };
-    })
-    .on("end", () => addOrbitalAnimation(planet, orbit));
-};
+    });
+  //.on("end", () => addOrbitalAnimation(planet, orbit));
+}
 
 function calculateBarycenter(planets: PlanetData[]): Cords {
   let totalMass = 0;
@@ -298,10 +310,7 @@ function calculatePlanetPosition(planet: PlanetData): Cords {
   return inclinedEccentricityVector;
 }
 
-const getScaledSemiMajorAxis = (
-  semiMajorAxis: number,
-  name: string
-): number => {
+function getScaledSemiMajorAxis(semiMajorAxis: number, name: string): number {
   switch (name) {
     case "Mercury":
       return semiMajorAxis * 48;
@@ -330,10 +339,10 @@ const getScaledSemiMajorAxis = (
     default:
       return 0;
   }
-};
+}
 
-const getScaledDiameter = (diameter: number, scaleFactor = 1500): number => {
+function getScaledDiameter(diameter: number, scaleFactor = 1500): number {
   if (diameter > 49000) return (diameter / scaleFactor) * 0.7;
   if (diameter > 5000) return (diameter / scaleFactor) * 1.5;
   return (diameter / scaleFactor) * 3;
-};
+}
