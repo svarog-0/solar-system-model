@@ -1,26 +1,29 @@
 import * as d3 from "d3";
 import "./zoomable-svg.css";
 
+// Constants
+const SVG_WIDTH = 1920 * 1.2;
+const SVG_HEIGHT = 1080 * 1.3;
+const MAX_MOVE_DISTANCE = 50;
+const DEFAULT_SCALE = window.innerWidth <= 1000 ? 3 : 1.5;
+const MIN_SCALE = 1;
+const MAX_SCALE = 4;
+const ZOOM_INTENSITY = 0.1;
+const MOVE_THRESHOLD = 10;
+
 /**
  * Creates a zoomable SVG container with the provided SVG content.
  */
 export default function ZoomableSvg(
   svgContent: SVGSVGElement | null
 ): HTMLElement {
-  const svgWidth = 1920 * 1.2;
-  const svgHeight = 1080 * 1.3;
-  const maxMoveDistance = 50;
-  const defaultScale = window.innerWidth <= 1000 ? 3 : 1.5;
-  const minScale = 1;
-  const maxScale = 4;
-  const zoomIntensity = 0.1;
-  const moveThreshold = 10;
+  // State
   let isDragging = false;
   let startX = 0;
   let startY = 0;
   let translateX = 0;
   let translateY = 0;
-  let scale = defaultScale;
+  let scale = DEFAULT_SCALE;
   let isPanning = false;
   let isZooming = false;
   let touchStartDistance = 0;
@@ -28,17 +31,22 @@ export default function ZoomableSvg(
   let touchStartX = 0;
   let touchStartY = 0;
 
+  // Create container
   const div = d3.create("div").attr("class", "zoomable-svg-div");
   setCursor(div, isDragging);
 
+  // Create SVG
   const svg = div
     .append("svg")
     .attr("xmlns", "http://www.w3.org/2000/svg")
-    .attr("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
+    .attr("viewBox", `0 0 ${SVG_WIDTH} ${SVG_HEIGHT}`);
+
+  // Create main group
   const g = svg
     .append("g")
-    .attr("transform", `translate(${svgWidth / 2}, ${svgHeight / 2})`);
+    .attr("transform", `translate(${SVG_WIDTH / 2}, ${SVG_HEIGHT / 2})`);
 
+  // Define event handlers
   function handleMouseDown(event: any): void {
     console.log("handleMouseDown");
     isDragging = true;
@@ -54,10 +62,11 @@ export default function ZoomableSvg(
     const offsetX = getClientX(event) - startX;
     const offsetY = getClientY(event) - startY;
     const distance = Math.sqrt(offsetX ** 2 + offsetY ** 2);
-    if (distance <= maxMoveDistance) {
+    if (distance <= MAX_MOVE_DISTANCE) {
       translateX = translateX + offsetX;
       translateY = translateY + offsetY;
-      applyTransform();
+
+      applyTransform(svg, translateX, translateY, scale);
     }
     startX = getClientX(event);
     startY = getClientY(event);
@@ -71,13 +80,14 @@ export default function ZoomableSvg(
   function handleWheel(event: WheelEvent): void {
     const minScale = 1;
     const maxScale = 4;
-    const delta = event.deltaY > 0 ? -zoomIntensity : zoomIntensity;
+    const delta = event.deltaY > 0 ? -ZOOM_INTENSITY : ZOOM_INTENSITY;
     let newScale = scale + delta;
 
     newScale = Math.max(minScale, Math.min(maxScale, newScale));
 
     scale = newScale;
-    applyTransform();
+
+    applyTransform(svg, translateX, translateY, scale);
   }
 
   function handleTouchStart(event: TouchEvent): void {
@@ -111,8 +121,8 @@ export default function ZoomableSvg(
         const touchDistance = getDistance(touch1, touch2);
         const deltaDistance = touchDistance - touchStartDistance;
         const newScale = Math.max(
-          minScale,
-          Math.min(maxScale, touchStartScale + deltaDistance * 0.01)
+          MIN_SCALE,
+          Math.min(MAX_SCALE, touchStartScale + deltaDistance * 0.01)
         );
         const touchX = (touch1.clientX + touch2.clientX) / 2;
         const touchY = (touch1.clientY + touch2.clientY) / 2;
@@ -123,7 +133,7 @@ export default function ZoomableSvg(
         translateX = offsetX;
         translateY = offsetY;
 
-        applyTransform();
+        applyTransform(svg, translateX, translateY, scale);
       } else {
         // Single touch for panning
         const touchX = getClientX(event.touches[0]);
@@ -132,13 +142,13 @@ export default function ZoomableSvg(
         const offsetY = touchY - touchStartY;
 
         if (
-          Math.abs(offsetX) > moveThreshold ||
-          Math.abs(offsetY) > moveThreshold
+          Math.abs(offsetX) > MOVE_THRESHOLD ||
+          Math.abs(offsetY) > MOVE_THRESHOLD
         ) {
           translateX += offsetX;
           translateY += offsetY;
 
-          applyTransform();
+          applyTransform(svg, translateX, translateY, scale);
 
           touchStartX = touchX;
           touchStartY = touchY;
@@ -152,19 +162,7 @@ export default function ZoomableSvg(
     isZooming = false;
   }
 
-  function applyTransform(): void {
-    svg.style(
-      "transform",
-      `translate(${translateX}px, ${translateY}px) scale(${scale})`
-    );
-  }
-
-  if (svgContent) {
-    g.append(() => svgContent);
-  }
-
-  applyTransform();
-
+  // Add event listeners
   svg.on("mousedown", handleMouseDown);
   svg.on("touchstart", handleTouchStart);
   svg.on("mousemove", handleMouseMove);
@@ -174,11 +172,30 @@ export default function ZoomableSvg(
   svg.on("touchend", handleTouchEnd);
   div.on("wheel", handleWheel);
 
+  // Render and return
+  if (svgContent) {
+    g.append(() => svgContent);
+  }
+
+  applyTransform(svg, translateX, translateY, scale);
+
   return (
     div.node() ??
     (() => {
       throw new Error("Zoomable svg not created");
     })()
+  );
+}
+
+function applyTransform(
+  svg: d3.Selection<SVGSVGElement, undefined, null, undefined>,
+  translateX: number,
+  translateY: number,
+  scale: number
+): void {
+  svg.style(
+    "transform",
+    `translate(${translateX}px, ${translateY}px) scale(${scale})`
   );
 }
 
