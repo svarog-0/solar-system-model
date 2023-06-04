@@ -39,16 +39,14 @@ svg.star-background {
 .sun-ray-1 {
   height: 100%;
   width: 100%;
-  y: 0;
   x: 0;
+  y: 0;
   fill: url(#solarGradient);
 }
-.sun-ray {
+.sun-ray-2 {
   height: 100%;
   width: 100%;
-  y: 100;
-  x: 100;
-  fill: url(#solarGradient);
+  fill: url(#solarGradientTop);
 }
 @keyframes flicker-circles-rotate {
   from {

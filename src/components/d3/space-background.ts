@@ -8,7 +8,7 @@ export function SpaceBackground(
 
   const defs = svg.append("defs");
 
-  const solarGradient = defs
+  const solarGradientLeftBottom = defs
     .append("radialGradient")
     .attr("cx", "0%")
     .attr("cy", "100%")
@@ -16,12 +16,30 @@ export function SpaceBackground(
     .attr("spreadMethod", "pad")
     .attr("id", "solarGradient");
 
-  solarGradient
+  solarGradientLeftBottom
     .append("stop")
     .attr("offset", "0%")
     .attr("stop-color", "hsla(0, 0%, 100%, 0.35)");
 
-  solarGradient
+  solarGradientLeftBottom
+    .append("stop")
+    .attr("offset", "70%")
+    .attr("stop-color", "hsla(0, 0%, 0%, 0)");
+
+  const solarGradientRightTop = defs
+    .append("radialGradient")
+    .attr("cx", "100%")
+    .attr("cy", "0%")
+    .attr("r", "100%")
+    .attr("spreadMethod", "pad")
+    .attr("id", "solarGradientTop");
+
+  solarGradientRightTop
+    .append("stop")
+    .attr("offset", "0%")
+    .attr("stop-color", "hsla(0, 0%, 100%, 0.35)");
+
+  solarGradientRightTop
     .append("stop")
     .attr("offset", "70%")
     .attr("stop-color", "hsla(0, 0%, 0%, 0)");
@@ -186,6 +204,7 @@ export function SpaceBackground(
 
   svg.append("use").attr("class", "stars stars-lg").attr("href", "#stars");
 
-  svg.append("rect").attr("class", "sun-ray-1");
+  svg.append("rect").attr("class", "sun-ray-1").attr("x", 0).attr("y", 0);
+  console.log("svg", svg);
   svg.append("rect").attr("class", "sun-ray-2");
 }
