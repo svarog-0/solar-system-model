@@ -159,13 +159,6 @@ export default function ZoomableSvg(
     );
   }
 
-  function setCursor(
-    div: d3.Selection<HTMLDivElement, undefined, null, undefined>,
-    isDragging: boolean
-  ) {
-    div.style("cursor", isDragging ? "grabbing" : "grab");
-  }
-
   if (svgContent) {
     g.append(() => svgContent);
   }
@@ -182,7 +175,7 @@ export default function ZoomableSvg(
   div.on("wheel", handleWheel);
 
   return (
-    div.node() ||
+    div.node() ??
     (() => {
       throw new Error("Zoomable svg not created");
     })()
@@ -201,4 +194,11 @@ function getDistance(point1: Touch, point2: Touch): number {
   const dx = point2.clientX - point1.clientX;
   const dy = point2.clientY - point1.clientY;
   return Math.sqrt(dx ** 2 + dy ** 2);
+}
+
+function setCursor(
+  div: d3.Selection<HTMLDivElement, undefined, null, undefined>,
+  isDragging: boolean
+) {
+  div.style("cursor", isDragging ? "grabbing" : "grab");
 }

@@ -20,7 +20,7 @@ export function PlanetsWithOrbits(planetsData: PlanetData[]): {
       .attr("fill", pd.color);
 
     const planet =
-      planetSelection.node() ||
+      planetSelection.node() ??
       (() => {
         throw Error("Planet not created");
       })();
@@ -50,7 +50,7 @@ export function Sun(): SVGImageElement {
       .attr("height", sunRadius)
       .attr("x", -(sunRadius / 2))
       .attr("y", -(sunRadius / 2))
-      .node() ||
+      .node() ??
     (() => {
       throw Error("Sun not created");
     })()
@@ -133,7 +133,7 @@ export function AsteroidBelt(ad: MinorSolarObjectData): Element {
     .style("stroke", "none");
 
   return (
-    asteroidGroup.node() ||
+    asteroidGroup.node() ??
     (() => {
       throw Error("Asteroid belt not created");
     })()
@@ -151,12 +151,6 @@ export function OortCloud(oc: MinorSolarObjectData) {
     oc.eccentricity,
     getScaledSemiMajorAxis(oc.semiMajorAxisStart * 0.8, oc.name)
   );
-  const arcGenerator = d3
-    .arc()
-    .innerRadius(innerRadius)
-    .outerRadius(outerRadius * 1.5)
-    .startAngle(0)
-    .endAngle(Math.PI * 2);
 
   const textArcGenerator = d3
     .arc()
@@ -228,7 +222,7 @@ function Orbit(solarObject: PlanetData, cords: Cords): SVGEllipseElement {
       .style("stroke-dasharray", "4")
       .attr("rx", width)
       .attr("ry", height)
-      .node() ||
+      .node() ??
     (() => {
       throw new Error("Orbit not created");
     })()
@@ -260,9 +254,9 @@ function addOrbitalAnimation(
       return (t: number) => {
         const angle = t * 2 * Math.PI;
         const x =
-          0 + parseInt(orbit.getAttribute("rx") || "1") * Math.cos(angle);
+          0 + parseInt(orbit.getAttribute("rx") ?? "1") * Math.cos(angle);
         const y =
-          0 + parseInt(orbit.getAttribute("ry") || "1") * Math.sin(angle);
+          0 + parseInt(orbit.getAttribute("ry") ?? "1") * Math.sin(angle);
         return `translate(${x},${y})`;
       };
     });

@@ -8,6 +8,7 @@
 
 .zoomable-svg-div > svg {
   overflow: hidden;
+  user-select: "none";
   display: block;
   margin: auto;
   width: 100vw;
